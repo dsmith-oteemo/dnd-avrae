@@ -1,0 +1,107 @@
+###
+#Cleric power setup; Run this every time you level
+
+!test <drac2>
+if (ClericLevel < 2):
+  character.remove_cc("Channel Divinity")
+elif (ClericLevel < 7):
+  character().create_cc("Channel Divinity",0,1,"short","bubble")
+elif (ClericLevel < 19):
+  character().create_cc("Channel Divinity",0,2,"short","bubble")
+else:
+  character().create_cc("Channel Divinity",0,3,"short","bubble")
+</drac2>
+
+
+###
+#Turn Undead
+
+!alias turn embed
+<drac2>
+args=argparse(&ARGS&)
+targets=args.get('t') if args.get('t') else []
+results="" if targets else "-f 'No Targets Specified!'"
+damage=int(args.get('d')[0]) if args.get('d') else 0
+savRoll="\u200b"
+spellDC=8 + proficiencyBonus + wisdomMod
+failure=False
+if ((len(targets)>0) and combat() and (get_cc('Channel Divinity') > 0)):
+  for target in targets:
+    name = combat().get_combatant(target).name
+    savRoll = combat().get_combatant(target).save("wisdom")
+    to_save = "Save Throw Failure: " if int(savRoll.total) < spellDC else "Save Throw Success: "
+    combat().get_combatant(target).add_effect("Turn Undead","",10,"","","","Must flee until damage is taken")
+    results = results + "-f '" + name + " \n " + to_save + savRoll.full + "'\n"
+  character().set_cc("Channel Divinity",(character().get_cc("Channel Divinity") - 1 ) )
+elif (get_cc('Channel Divinity') > 0):
+  character().set_cc("Channel Divinity",(character().get_cc("Channel Divinity") - 1 ) )
+  for target in targets:
+    results = results + "-f '" + name + "'\n"
+else:
+  failure = True
+</drac2>
+-title "{{ f'{character().name} Turns the Undead' if not failure else f'{character().name} fails to Turn Undead!' }}"
+-desc "Each undead that can see or hear you within 30 feet of you must make a Wisdom saving throw else be turned (10 turns or until damaged). A turned creature must try to move as far away from you as it can, and it can't willingly move to a space within 30 feet of you. It also can't take reactions. For its action, it can use only the Dash action or try to escape from an effect that prevents it from moving. If there's nowhere to move, the creature can use the Dodge action."
+-f "Spell DC"|"{{ spellDC }}"
+-f "Targets:"
+{{ results }}
+-f "Usage:"|"```!turn -t enemy1 -t enemy2 -t enemyN```"
+-f "Channel Divinity"|{{'◉' * get_cc('Channel Divinity') + '〇' * (get_cc_max('Channel Divinity') - get_cc('Channel Divinity'))}}
+-footer "Source PHB"
+
+
+###
+#Charm Plants and animals
+
+!alias charm embed
+<drac2>
+args=argparse(&ARGS&)
+targets=args.get('t') if args.get('t') else []
+results="" if targets else "-f 'No Targets Specified!'"
+damage=int(args.get('d')[0]) if args.get('d') else 0
+savRoll="\u200b"
+spellDC=8 + proficiencyBonus + wisdomMod
+failure=False
+if ((len(targets)>0) and combat() and (get_cc('Channel Divinity') > 0)):
+  for target in targets:
+    name = combat().get_combatant(target).name
+    savRoll = combat().get_combatant(target).save("wisdom")
+    to_save = "Save Throw Failure: " if int(savRoll.total) < spellDC else "Save Throw Success: "
+    combat().get_combatant(target).add_effect("Charm Animals and Plants","",10,"","","","Charmed until damage is taken")
+    results = results + "-f '" + name + " \n " + to_save + savRoll.full + "'\n"
+  character().set_cc("Channel Divinity",(character().get_cc("Channel Divinity") - 1 ) )
+elif (get_cc('Channel Divinity') > 0):
+  character().set_cc("Channel Divinity",(character().get_cc("Channel Divinity") - 1 ) )
+  for target in targets:
+    results = results + "-f '" + name + "'\n"
+else:
+  failure = True
+</drac2>
+-title "{{ f'{character().name} charms plants and animals' if not failure else f'{character().name} fails to charm plants and animals!' }}"
+-desc "As an action, you present your holy symbol and invoke the name of your deity. Each beast or plant creature that can see you within 30 feet of you must make a Wisdom saving throw. If the creature fails its saving throw, it is charmed by you for 1 minute or until it takes damage. While it is charmed by you, it is friendly to you and other creatures you designate."
+-f "Spell DC"|"{{ spellDC }}"
+-f "Targets:"
+{{ results }}
+-f "Usage:"|"```!charm -t enemy1 -t enemy2 -t enemyN```"
+-f "Channel Divinity"|{{'◉' * get_cc('Channel Divinity') + '〇' * (get_cc_max('Channel Divinity') - get_cc('Channel Divinity'))}}
+-footer "Source PHB"
+ 
+
+###
+#Harness Divine Power
+
+!alias harness embed
+<drac2>
+args=argparse(&ARGS&)
+slot_level="%1%" if exists("%1%") and int("%1%") <= ceil(proficiencyBonus/2) else ceil(proficiencyBonus/2)
+failure=False
+if ((get_cc('Channel Divinity') > 0) and (character().spellbook.get_slots(slot_level) < character().spellbook.get_max_slots(slot_level))):
+  character().set_cc("Channel Divinity",(character().get_cc("Channel Divinity") - 1 ) )
+  character().spellbook.set_slots(slot_level, character().spellbook.get_slots(slot_level) + 1)
+else:
+  failure=True
+</drac2>
+-title "{{ f'{character().name} Harnesses Divine Power' if not failure else f'{character().name} fails to Harness Divine Power!' }}"
+-desc "You can expend a use of your Channel Divinity to fuel your spells. As a bonus action, you touch your holy symbol, utter a prayer, and regain one expended spell slot, the level of which can be no higher than half your proficiency bonus (rounded up). The number of times you can use this feature is based on the level you've reached in this class: 2nd level, once; 6th level, twice; and 18th level, thrice. You regain all expended uses when you finish a long rest."
+-f "Level {slot_level} Spell Slots:"|{{'◉' * (character().spellbook.get_slots(int(slot_level))) + '〇' * (character().spellbook.get_max_slots(int(slot_level)) - character().spellbook.get_slots(int(slot_level)))}}
+-f "Channel Divinity"|{{'◉' * get_cc('Channel Divinity') + '〇' * (get_cc_max('Channel Divinity') - get_cc('Channel Divinity'))}}

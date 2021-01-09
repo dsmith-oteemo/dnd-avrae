@@ -1,0 +1,236 @@
+# Setup Barbarian rage Counter and damage bonus
+
+!test <drac2>
+if character().cc_exists("Rage"):
+  character().delete_cc("Rage")
+if (level <= 2):
+  character().create_cc("Rage",0,2,"long","bubble")
+elif (level <= 5):
+  character().create_cc("Rage",0,3,"long","bubble")
+elif (level <= 11):
+  character().create_cc("Rage",0,4,"long","bubble")
+elif (level <= 16):
+  character().create_cc("Rage",0,5,"long","bubble")
+elif (level <= 20):
+  character().create_cc("Rage",0,6,"long","bubble")
+if (level <= 8):
+  character().set_cvar("RageDamage",2)
+elif (level <= 15):
+  character().set_cvar("RageDamage",3)
+else:
+  character().set_cvar("RageDamage",4)  
+</drac2>
+
+
+# Setup barbarian storm effect (Storm Herald). If no effect is chosen, desert will be the default.
+#Usage: !stormsetup {desert|sea|tundra}
+#example: !stormsetup desert
+
+!alias stormsetup embed
+<drac2>
+args=argparse(&ARGS&)
+character().set_cvar("BarbarianSubclass","storm")
+if ("%1%" == "tundra"):
+  character().set_cvar("StormType","tundra")
+  character().set_cvar("StormDesc","When this effect is activated, each creature of your choice in your aura gains 2 temporary hit points, as icy spirits inure it to suffering. The temporary hit points increase when you reach certain levels in this class, increasing to 3 at 5th level, 4 at 10th level, 5 at 15th level, and 6 at 20th level.")
+elif ("%1%" == "sea"):
+  character().set_cvar("StormType","sea")
+  character().set_cvar("StormDesc","When this effect is activated, you can choose one other creature you can see in your aura. The target must make a Dexterity saving throw. The target takes 1d6 lightning damage on a failed save, or half as much damage on a successful one. The damage increases when you reach certain levels in this class, increasing to 2d6 at 10th level, 3d6 at 15th level, and 4d6 at 20th level.")
+else:
+  character().set_cvar("StormType","desert")
+  character().set_cvar("StormDesc","When this effect is activated, all other creatures in your aura take 2 fire damage each. The damage increases when you reach certain levels in this class, increasing to 3 at 5th level, 4 at 10th level, 5 at 15th level, and 6 at 20th level.")
+if (level <= 4):
+  if ((get("StormType") == "tundra") or (get("StormType") == "desert")):
+    character().set_cvar("StormDamage",2)
+  else:
+    character().set_cvar("StormDamage","1d6[lightning]")
+elif (level <= 9):
+  if (get("StormType") == "tundra" or get("StormType") == "desert"):
+    character().set_cvar("StormDamage",3)
+  else:
+    character().set_cvar("StormDamage","1d6[lightning]")
+elif (level <= 14):
+  if (get("StormType") == "tundra" or get("StormType") == "desert"):
+    character().set_cvar("StormDamage",4)
+  else: 
+    character().set_cvar("StormDamage","2d6[lightning]")
+elif (level <= 20):
+  if (get("StormType") == "tundra" or get("StormType") == "desert"):
+    character().set_cvar("StormDamage",5)
+  else: 
+    character().set_cvar("StormDamage","3d6[lightning]")
+else:
+  if (get("StormType") == "tundra" or get("StormType") == "desert"):
+    character().set_cvar("StormDamage",6)
+  else:
+    character().set_cvar("StormDamage","4d6[lightning]")  
+</drac2>
+-title "{{character().name}} has setup Storm Aura : {{StormType}}"
+-desc "{{StormDesc}}"
+-f "Note:"|"Storm Herald type can be changed when leveling up. Rerun this script when you need to change it and also as you level, to increase aura power."
+-f "Usage:"|"!stormsetup [desert|sea|tundra]"
+-footer "Source XGE"
+
+
+#Create Barbarian rage effect (Will be expanded in the future; only handles storm barb right now)
+ 
+!alias rage embed
+<drac2>
+args=argparse(&ARGS&)
+if not (character().cc_exists("Rage")):
+  failure = True
+  title = "No Rage counter detected; did you run the setup script?"
+  desc = title
+elif (character().get_cc("Rage") > 0):
+  failure = False
+  title = "Explodes with rage!"
+  desc = "In battle, you fight with primal ferocity. On your turn, you can enter a rage as a bonus action. If you are able to cast spells, you can't cast them or concentrate on them while raging. Your rage lasts for 1 minute. It ends early if you are knocked unconscious or if your turn ends and you haven't attacked a hostile creature since your last turn or taken damage since then. You can also end your rage on your turn as a bonus action. Once you have raged the maximum number of times for your barbarian level, you must finish a long rest before you can rage again. You may rage 2 times at 1st level, 3 at 3rd, 4 at 6th, 5 at 12th, and 6 at 17th."
+  character().set_cc("Rage", character().get_cc("Rage") - 1)
+  combat().me.add_effect("Rage",f'-d {2+(level>8)+(level>15)} -resist bludgeoning -resist piercing -resist slashing',10,"","","","Advantage to Strength checks and saving throws")
+  character().set_cvar_nx("BarbarianSubclass","None")
+  if (BarbarianSubclass == "storm"):
+    if (StormType == "sea"):
+      combat().me.add_effect("Storm Aura -- "f'{ StormType }',"",10,"","","","Bonus Action: "f'{ StormDamage }'" lightning dam single target in aura")
+    elif (StormType == "tundra"):
+      combat().me.add_effect("Storm Aura -- "f'{ StormType }',"",10,"","","","Bonus Action: "f'{ StormDamage }'" temp HP to selected targets in aura")
+    else:
+      combat().me.add_effect("Storm Aura -- "f'{ StormType }',"",10,"","","","Bonus Action: "f'{ StormDamage }'" fire dam to all creatures in aura")
+else:
+  failure = True
+  title = "Tried to rage, but is out of charges."
+  desc = title
+</drac2>
+-title "{{f'{character().name} {title}'}}"
+-desc "{{f'{desc}'}}"
+-f "While raging, you gain the following benefits if you aren't wearing heavy armor:"|"* You have advantage on Strength checks and Strength saving throws."
+-f "* When you make a melee weapon attack using Strength, you gain a +2 bonus to the damage roll. This bonus increases as you level."
+-f "* You have resistance to bludgeoning, piercing, and slashing damage."
+-f {{ character().set_cvar_nx("BarbarianSubclass","None") }}"Storm Aura -- {{StormType}}"|"{{StormDesc}}" if BarbarianSubclass=="storm" else {{"Additional Features:"}}|{{"None"}}
+-f "{{"Rage"}}|{{'◉'*get_cc("Rage") + '〇'*(get_cc_max("Rage")-get_cc("Rage"))}}"
+-footer "Source: PHB"
+
+
+# Use Storm Herald bonus action
+
+!alias storm embed
+<drac2>
+args=argparse(&ARGS&)
+targets=args.get('t')
+spellDC="n/a"
+enemySave="n/a"
+result = "n/a"
+results="" if targets else "-f 'No Targets Specified'"
+failure=False
+damage =0
+names=['\u200b']
+sa = ""
+if (combat()):
+    sa = combat().me.get_effect("Storm Aura")
+    if (sa):
+      if ((StormType == "sea") and (len(targets) > 0) ):
+        spellDC = 8 + proficiencyBonus + constitutionMod
+        enemySave = combat().get_combatant(targets[0]).save("dexterity","")
+        result = vroll(StormDamage)
+        damage = int(result.total)
+        names.append(combat().get_combatant(targets[0]).name)
+        if (enemySave.total >= spellDC):
+          damage = int(floor(damage/2))        
+        combat().get_combatant(targets[0]).damage(f'{damage}'"[lightning]")
+        to_save = "Success" if enemySave.total >= spellDC else "Failed" 
+        results = "-f 'Spell DC'|" + str(spellDC) + "\n"
+        results = results + "-f 'Targets:'|\u200b\n"
+        results = results + "-f '" + str(combat().get_combatant(targets[0]).name) + ": " + str(combat().get_combatant(targets[0]).hp_str()) + " \nSave throw " + to_save + " : " + enemySave.full + " \nDamage Roll: " + result.full + "\nDamage Total: " + str(damage) + "'\n" 
+      elif (StormType == "tundra"):
+        results = "-f 'Targets:'|\u200b\n"
+        for ally in targets:
+          if (int(StormDamage) > combat().get_combatant(ally).temp_hp):
+            names.append(combat().get_combatant(ally).name)
+            combat().get_combatant(ally).set_temp_hp(int(StormDamage))          
+          results = results + "-f '" + str(combat().get_combatant(ally).name) + " -- " + str(combat().get_combatant(ally).hp_str()) + "'\n"
+      elif (StormType == "desert"):
+        results = "-f 'Targets:'|\u200b\n"
+        for enemy in targets:
+          names.append(combat().get_combatant(enemy).name)
+          combat().get_combatant(enemy).damage(f'{StormDamage}'"[fire]")
+          damage = int(StormDamage) * len(targets)  if (len(targets) > 0) else 0
+          results = results + "-f '" + str(combat().get_combatant(enemy).name) + " " + str(combat().get_combatant(enemy).hp_str()) + " -- Damage: " + str(StormDamage) + "'\n"
+      else:
+        failure = True    
+    else:
+      failure = True      
+</drac2>
+-title "{{ f'{character().name} glows with the power of the {StormType} ' if not failure else  f'{character().name} fails to channel the power of the {StormType} '}}"
+-desc "{{ StormDesc }}"
+{{ results }}
+-footer "Source XGE"
+
+
+#Great Weapon Mastery
+!snippet gw -b -5 -d 10 -f "Great Weapon Mastery (Feat):"|"Before you make a melee attack with a heavy weapon that you are proficient with, you can choose to take a -5 penalty to the attack roll. If the attack hits, you add +10 to the attack's damage."
+
+
+#Reckless Attack
+
+!serversnippet ra {{ combat().me.add_effect("Reckless Attack","",1,"","","","attackers get advantage on attack rolls") }} -f "Reckless Attack:"|"Starting at 2nd level, you can throw aside all concern for defense to attack with fierce desperation. When you make your first attack on your turn, you can decide to attack recklessly. Doing so gives you advantage on melee weapon attack rolls using Strength during this turn, but attack rolls against you have advantage until your next turn." adv
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+##Not working right, but would prefer to use damage functions instead of raw hp manipulation
+  if (StormType == "sea"):
+    spellDC = 8 + proficiencyBonus + constitutionMod
+    enemySave = combat().get_combatant("%1%").save("dexterity","")
+	result = vroll(StormDamage)
+    if (enemySave.total < spellDC):
+      combat().get_combatant("%1%").damage(result.total,"","","","","")
+    else:
+      combat().get_combatant("%1%").damage(result.total/2,"","","","","")
+
+
+-f {{ character().set_cvar_nx("notExist","None") }}{{"none"}}|{{"none"}} if notExist else {{"some"}}|{{"some"}}
+
+
+#character().add_effect('Rage',f'-d {2+(level>8)+(level>15)}' " -resist bludgeoning piercing slashing",10,,,,"str chk/sav adv; +dam; resist bps")
+-f "{{"Bardic Inspiration"}}|{{'◉'*get_cc("Bardic Inspiration") + '〇'*(get_cc_max("Bardic Inspiration")-get_cc("Bardic Inspiration"))}}"
+
+-title "{{f'{character().name} {"Inspires" if not failure else "fails to inspire"} {%1%}!' }}" 
+#C.add_effect('Rage',f'-d {2+(lvl>8)+(lvl>15)} {" ".join(T)}',args.last("dur") if "dur" in args else 10) if v and C else ""
