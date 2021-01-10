@@ -33,6 +33,166 @@ character().create_cc("Hit Dice (d10)",0,FighterLevel,"long","bubble")
 
 
 ###
+#Parry:
+#
+#Usage: !parry -d {the amount of damage you are parrying(required)} -hd {die type to use (optional)}
+
+!alias parry embed
+<drac2>
+args=argparse(&ARGS&)
+damage=int(args.get('d')[0]) if args.get('d') else 0
+die_type=args.get('hd')[0] if args.get('hd') else superiority_max_die
+damageNull=vroll("1"f'{die_type}'"+"f'{dexterityMod}')
+actualDamage=int(damageNull.total) if int(damageNull.total) <= damage else damage
+results=""
+if ((damage) and (character().get_cc("Superiority ("f'{die_type}'")") > 0)):
+  failure = False
+  character().set_cc("Superiority ("f'{die_type}'")", character().get_cc("Superiority ("f'{die_type}'")") - 1 )
+  results = "-f \"Meta:\"|\"" + str(damageNull.full) + "\" -f \"Damage Nullified:\"|\"" + str(actualDamage) + "\""
+  hp_mod=character().hp + actualDamage
+  hp_max=character().max_hp
+  if (hp_mod > hp_max):
+    character().reset_hp()
+  else:
+    character().set_hp(hp_mod)
+else:
+  failure = True
+  results = "-f \"Failure:\"|\"Out of charges or no Damage specified\""
+</drac2>
+-title "{{ f'{character().name} uses Superiority to Parry the last attack' if not failure else f'{character().name} fails to intercept the attack'}}"
+-desc "When another creature damages you with a melee attack, you can use your reaction and expend one superiority die to reduce the damage by the number you roll on your superiority die + your Dexterity modifier."
+{{ results }}
+-f "Usage:"|"-d argument is required```!parry -d [damage of last attack] -hd [die type to use (optional)]```"
+-f "{{ character().name }} HP:"|"{{ character().hp_str() }}"
+-f "{{"Superiority ("f'{die_type}'")"}}|{{'◉'*get_cc("Superiority ("f'{die_type}'")") + '〇'*(get_cc_max("Superiority ("f'{die_type}'")")-get_cc("Superiority ("f'{die_type}'")"))}}"
+-footer "Source PHB"
+
+
+###
+#Evasive Footwork:
+#
+#Usage: !ef
+
+!alias ef embed 
+<drac2>
+args=argparse(&ARGS&)
+damage=int(args.get('d')[0]) if args.get('d') else 0
+die_type=args.get('hd')[0] if args.get('hd') else superiority_max_die
+damageNull=vroll("1"f'{die_type}')
+results=""
+if (character().get_cc("Superiority ("f'{die_type}'")") > 0):
+  failure = False
+  character().set_cc("Superiority ("f'{die_type}'")", character().get_cc("Superiority ("f'{die_type}'")") - 1 )
+  mod_ac = character().ac + damageNull.total
+  results= "-f \"Meta:\"|\"" + str(damageNull.full) + "\" -f \"Moving AC:\"|\"" + str(mod_ac) + "\" "
+  if (combat()):
+    combat().me.add_effect("Evasive Footwork -- "f'{die_type}',f'-ac +{damageNull.total}',1,"","",True,"")   
+else:
+  results="-f \"Failure:\"|\"Out of charges\""
+  failure = True
+</drac2>
+-title "{{ f'{character().name} uses Evasive Footwork to move through the fray' if not failure else f'{character().name} fails to use Evasive Footwork!'}}"
+-desc "When you move, you can expend one superiority die, rolling the die and adding the number rolled to your AC until you stop moving."
+{{ results }}
+-f "Usage:"|"```!ef -hd [die type] (optional)```"
+-f "{{"Superiority ("f'{die_type}'")"}}|{{'◉'*get_cc("Superiority ("f'{die_type}'")") + '〇'*(get_cc_max("Superiority ("f'{die_type}'")")-get_cc("Superiority ("f'{die_type}'")"))}}"
+
+
+###
+#Second Wind:
+#
+#Usage: !sw
+
+!alias sw embed
+<drac2>
+args=argparse(&ARGS&)
+damageNull=vroll("1d10+"f'{FighterLevel}')
+results=""
+if (character().get_cc("Second Wind") > 0):
+  failure = False
+  character().set_cc("Second Wind", character().get_cc("Second Wind") - 1 )
+  results = "-f \"Meta:\"|\"" + str(damageNull.full) + "\" -f \"Healing:\"|\"" + str(damageNull.total) + "\""
+  hp_mod=character().hp + damageNull.total
+  hp_max=character().max_hp
+  if (hp_mod > hp_max):
+    character().reset_hp()
+  else:
+    character().set_hp(hp_mod)
+else:
+  failure = True
+  results = "-f \"Failure:\"|\"Out of charges\""
+</drac2>
+-title "{{ f'{character().name} gets a Second Wind!' if not failure else f'{character().name} tries to muster a Second Wind but is exhausted.'}}"
+-desc "You have a limited well of stamina that you can draw on to protect yourself from harm. On your turn, you can use a bonus action to regain hit points equal to 1d10 + your fighter level. Once you use this feature, you must finish a short or long rest before you can use it again."
+{{ results }}
+-f "Usage:"|"```!sw```"
+-f "{{ character().name }} HP:"|"{{ character().hp_str() }}"
+-f "{{"Second Wind"}}|{{'◉'*get_cc("Second Wind") + '〇'*(get_cc_max("Second Wind")-get_cc("Second Wind"))}}"
+-footer "Source PHB"
+
+
+###
+#Action Surge:
+#
+#Usage: !as
+
+!alias as embed
+<drac2>
+if (character().get_cc("Action Surge") > 0):
+  failure = False
+  character().set_cc("Action Surge", character().get_cc("Action Surge") - 1 )
+  results = ""
+else:
+  failure = True
+  results = "-f \"Failure:\"|\"Out of charges\""
+</drac2>
+-title "{{ f'{character().name} uses Action Surge!' if not failure else f'{character().name} fails to use Action Surge.'}}"
+-desc "Starting at 2nd level, you can push yourself beyond your normal limits for a moment. On your turn, you can take one additional action. Once you use this feature, you must finish a short or long rest before you can use it again. Starting at 17th level, you can use it twice before a rest, but only once on the same turn."
+{{ results }}
+-f "Usage:"|"```!as```"
+-f "{{"Action Surge"}}|{{'◉'*get_cc("Action Surge") + '〇'*(get_cc_max("Action Surge")-get_cc("Action Surge"))}}"
+-footer "Source PHB"
+
+
+
+
+
+
+
+
+
+
+
+
+
+#####################################################################################################################
+Adrian, ignore everything past this
+Adrian, ignore everything past this
+Adrian, ignore everything past this
+Adrian, ignore everything past this
+Adrian, ignore everything past this
+Adrian, ignore everything past this
+Adrian, ignore everything past this
+Adrian, ignore everything past this
+Adrian, ignore everything past this
+Adrian, ignore everything past this
+Adrian, ignore everything past this
+#################################################################################################################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+###
 #Interception:
 #
 #Usage: !int -t {Party member that you are defending} -d {damage total of the last attack}
@@ -63,39 +223,7 @@ if not (failure):
 -f "Target:"|"{{ target }}"
 -f "Damage Nullified:"|"{{ actualDamage }}"
 -f "Usage:"|"Only usable in combat. Both -t and -d arguments are required```!int -t target -d {damage of last attack}```"
--footer "Source PHB"
-
-###
-#Parry:
-#
-#Usage: !parry -d {the amount of damage you are parrying(required)} -hd {die type to use (optional)}
-
-!alias parry embed
-<drac2>
-args=argparse(&ARGS&)
-damage=int(args.get('d')[0]) if args.get('d') else 0
-die_type=args.get('hd')[0] if args.get('hd') else superiority_max_die
-damageNull=vroll("1"f'{die_type}'"+"f'{dexterityMod}')
-actualDamage=int(damageNull.total) if int(damageNull.total) <= damage else damage
-if ((damage) and (character().get_cc("Superiority ("f'{die_type}'")") > 0)):
-  failure = False
-  character().set_cc("Superiority ("f'{die_type}'")", character().get_cc("Superiority ("f'{die_type}'")") - 1 ) 
-else:
-  failure = True
-if not (failure):
-  hp_mod=character().hp + actualDamage
-  hp_max=character().max_hp
-  if (hp_mod > hp_max):
-    character().reset_hp()
-  else:
-    character().set_hp(hp_mod)
-</drac2>
--title "{{ f'{character().name} uses Superiority to Parry the last attack' if not failure else f'{character().name} fails to intercept the attack'}}"
--desc "When another creature damages you with a melee attack, you can use your reaction and expend one superiority die to reduce the damage by the number you roll on your superiority die + your Dexterity modifier."
--f "Meta:"|"{{ damageNull.full }}"
--f "Damage Nullified:"|"{{ actualDamage }}"
--f "Usage:"|"-d argument is required```!parry -d [damage of last attack] -hd [die type to use (optional)]```"
--f "{{"Superiority ("f'{die_type}'")"}}|{{'◉'*get_cc("Superiority ("f'{die_type}'")") + '〇'*(get_cc_max("Superiority ("f'{die_type}'")")-get_cc("Superiority ("f'{die_type}'")"))}}"
+-f "{{ character().name }} HP:"|"{{ character().hp_str() }}"
 -footer "Source PHB"
 
 ###
@@ -108,103 +236,3 @@ if not (failure):
 -desc "When a creature you can see attacks a target other than you that is within 5 feet of you, you can use your reaction to impose disadvantage on the attack roll. You must be wielding a shield."
 
 
-###
-#Evasive Footwork:
-#
-#Usage: !evade
-
-!alias evade embed
--title "f'{character().name} uses a Evasive Footwork to move through the fray'"
--desc "When you move, you can expend one superiority die, rolling the die and adding the number rolled to your AC until you stop moving."
-
-
-
-!alias ef embed 
-<drac2>
-args=argparse(&ARGS&)
-damage=int(args.get('d')[0]) if args.get('d') else 0
-die_type=args.get('hd')[0] if args.get('hd') else superiority_max_die
-damageNull=vroll("1"f'{die_type}'")
-if (character().get_cc("Superiority ("f'{die_type}'")") > 0):
-  failure = False
-  character().set_cc("Superiority ("f'{die_type}'")", character().get_cc("Superiority ("f'{die_type}'")") - 1 ) 
-else:
-  failure = True
-  
-</drac2>
-
-
-
-
-
-
-
-
-
-!alias rtv embed
-<drac2>
-args=argparse(&ARGS&)
-target=combat().get_combatant(args.get('t')[0]).name if args.get('t') and combat() else "\u200b"
-damage=int(args.get('d')[0]) if args.get('d') else 0
-savRoll="\u200b"
-spellDC=8 + proficiencyBonus + charismaMod
-adv=""
-adv= False if args.get('adv') else adv
-adv= True if args.get('dis') else adv
-if ((target) and (damage)):
-  failure = False
-else:
-  failure = True
-if ((character().get_cc("Channel Divinity") > 0) and (combat() and not failure)):
-  savRoll = combat().get_combatant(target).save("wisdom",adv)
-  if (int(savRoll.total) >= spellDC):
-    damage = floor(damage/2)
-  combat().get_combatant(target).damage(f'{damage}')
-  character().set_cc("Channel Divinity",(character().get_cc("Channel Divinity") - 1 ) )  
-</drac2>
--title "{{ f'{character().name} uses a reaction to Rebuke the Violent' if not failure else f'{character().name} fails to Rebuke the Violent!' }}"
--desc "You can use your Channel Divinity to rebuke those who use violence. Immediately after an attacker within 30 feet of you deals damage with an attack against a creature other than you, you can use your reaction to force the attacker to make a Wisdom saving throw. On a failed save, the attacker takes radiant damage equal to the damage it just dealt. On a successful save, it takes half as much damage."
--f "Target"|"{{ target }}"
--f "spellDC"|"{{ spellDC }}"
--f "Saving throw (Wisdom)"|"{{savRoll}}"
--f "Damage:"|"{{ damage }}"
--f "Usage:"|"Only usable in combat. -t and -d args are critical, adv/dis argument is optional. damage should be the total damage of the attack you are reacting to.```!rtv -t target -d damage adv/dis```"
--f "{{"Channel Divinity"}}|{{'◉'*get_cc("Channel Divinity") + '〇'*(get_cc_max("Channel Divinity")-get_cc("Channel Divinity"))}}"
--footer "Source XGE"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-!test <drac2>
-if character().cc_exists("Rage"):
-  character().delete_cc("Rage")
-if (level <= 2):
-  character().create_cc("Rage",0,2,"long","bubble")
-elif (level <= 5):
-  character().create_cc("Rage",0,3,"long","bubble")
-elif (level <= 11):
-  character().create_cc("Rage",0,4,"long","bubble")
-elif (level <= 16):
-  character().create_cc("Rage",0,5,"long","bubble")
-elif (level <= 20):
-  character().create_cc("Rage",0,6,"long","bubble")
-if (level <= 8):
-  character().set_cvar("RageDamage",2)
-elif (level <= 15):
-  character().set_cvar("RageDamage",3)
-else:
-  character().set_cvar("RageDamage",4)  
-</drac2>
