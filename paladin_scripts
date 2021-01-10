@@ -8,6 +8,21 @@ if not character().cc_exists("Radiant Soul"):
   character().create_cc("Radiant Soul",0,1,"long","bubble")
 </drac2>
 
+###
+#Paladin power setup; Run this every time you level
+
+!test <drac2>
+character().create_cc("Lay on Hands Pool",0,5*PaladinLevel,"long","default")
+if ( PaladinLevel < 7 ):
+  character().create_cc("Channel Divinity",0,1,"short","bubble")
+elif ( PaladinLevel <15 )
+  character().create_cc("Channel Divinity",0,2,"short","bubble")
+else:
+  character().create_cc("Channel Divinity",0,3,"short","bubble")
+character().create_cc("Divine Sense",0,charismaMod+1,"long","bubble")
+</drac2>
+
+
 #Healing hands
 
 !alias hh embed
@@ -63,18 +78,6 @@ else:
 #Radiant Soul snippet
 
 !serversnippet rs {{ rad = combat().me.get_effect("Radiant Soul") if combat() else False}} {{ f'-d {level}[radiant] -f "Radiant Soul"|"Once on each of your turns, while Radiant Soul is in effect, you can deal extra radiant damage to one target when you deal damage to it with an attack or a spell. The extra radiant damage equals your level."' if rad else f'-f "Radiant Soul: Failure!"|"only usable in combat and when Radiant Soul effect is active"' }}
-
-
-
-
-###
-#Paladin power setup; Run this every time you level
-
-!test <drac2>
-character().create_cc("Lay on Hands Pool",0,5*PaladinLevel,"long","default")
-character().create_cc("Channel Divinity",0,1,"short","bubble")
-character().create_cc("Divine Sense",0,charismaMod+1,"long","bubble")
-</drac2>
 
 
 #Divine Smite (Stolen from Avrae dev server)
