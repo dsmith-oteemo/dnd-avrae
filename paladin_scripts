@@ -1,16 +1,4 @@
 #####
-#Corrections for omisions and errors on char sheet
-
-#light spell does not import properly with parens in the title "light (from race)"
-
-!sb add light
-
-#oath spells not included on char sheet
-
-!sb add sanctuary
-!sb add sleep
-
-#####
 #Aasimar power setup
 
 !test <drac2>
