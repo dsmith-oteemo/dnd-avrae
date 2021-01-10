@@ -15,7 +15,7 @@ if not character().cc_exists("Radiant Soul"):
 character().create_cc("Lay on Hands Pool",0,5*PaladinLevel,"long","default")
 if ( PaladinLevel < 7 ):
   character().create_cc("Channel Divinity",0,1,"short","bubble")
-elif ( PaladinLevel <15 )
+elif ( PaladinLevel <15 ):
   character().create_cc("Channel Divinity",0,2,"short","bubble")
 else:
   character().create_cc("Channel Divinity",0,3,"short","bubble")
