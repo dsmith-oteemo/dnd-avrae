@@ -5,7 +5,7 @@ The scripts are separated by commented lines; read the comments as they will off
 
 This is the rage alias for example:
 
-eg: !alias rage embed
+!alias rage embed
 
 To use it you would do this in discord:
 
