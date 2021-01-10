@@ -4,8 +4,6 @@
 
 ###This Script below needs to be a server snippet; everyone who consumes Bardic inspiration will need it.
 
-
-
 ###Use Bardic Inspiration die -- COMBAT ONLY
 ###Usage: !i a "Light Crossbow" -t "Monster" bi
 ###Usage: !check perception bi
