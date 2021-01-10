@@ -1,7 +1,7 @@
-#setup ranger powers
+#setup ranger powers, run initially and every time you level
 
 !test <drac2>
-character().set_cvar("flapjack_hp",16)
+character().set_cvar("flapjack_hp",8*RangerLevel)
 </drac2>
 
 
