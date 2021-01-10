@@ -60,14 +60,8 @@ if ((combat()) and (combat().get_combatant("Flapjack"))):
 -footer "UA Revised Ranger"
 
 
+#Flapjack attack shortcut
+!alias fa ma flapjack bite
 
 
 
-
-
-
-
-
-
-
-  f_effects = ['\u200b']
