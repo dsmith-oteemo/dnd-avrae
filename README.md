@@ -5,9 +5,11 @@ The scripts are separated by commented lines; read the comments as they will off
 
 This is the rage alias for example:
 eg: !alias rage embed
- 
+
+
 To use it you would do this in discord:
 !rage
+
 
 For code blocks that are more than 2000 chars, you will have to import it in the avrae dashboard:
 https://avrae.io/dashboard/aliases
