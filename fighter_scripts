@@ -153,6 +153,10 @@ else:
 -f "Usage:"|"```!ef -hd [die type] (optional)```"
 -f "{{"Superiority ("f'{die_type}'")"}}|{{'◉'*get_cc("Superiority ("f'{die_type}'")") + '〇'*(get_cc_max("Superiority ("f'{die_type}'")")-get_cc("Superiority ("f'{die_type}'")"))}}"
 
+###
+###Maneuvers:
+###
+
 
 ###
 #Bait And Switch
@@ -184,8 +188,6 @@ else:
 {{ results }}
 -f "Usage:"|"```!ef -hd [die type] (optional)```"
 -f "{{"Superiority ("f'{die_type}'")"}}|{{'◉'*get_cc("Superiority ("f'{die_type}'")") + '〇'*(get_cc_max("Superiority ("f'{die_type}'")")-get_cc("Superiority ("f'{die_type}'")"))}}"
-
-
 
 
 ###
