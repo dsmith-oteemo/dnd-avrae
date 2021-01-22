@@ -69,36 +69,6 @@ else:
 
 
 ###
-#Evasive Footwork:
-#
-#Usage: !ef
-
-!alias ef embed 
-<drac2>
-args=argparse(&ARGS&)
-damage=int(args.get('d')[0]) if args.get('d') else 0
-die_type=args.get('hd')[0] if args.get('hd') else superiority_max_die
-damageNull=vroll("1"f'{die_type}')
-results=""
-if (character().get_cc("Superiority ("f'{die_type}'")") > 0):
-  failure = False
-  character().set_cc("Superiority ("f'{die_type}'")", character().get_cc("Superiority ("f'{die_type}'")") - 1 )
-  mod_ac = character().ac + damageNull.total
-  results= "-f \"Meta:\"|\"" + str(damageNull.full) + "\" -f \"Moving AC:\"|\"" + str(mod_ac) + "\" "
-  if (combat()):
-    combat().me.add_effect("Evasive Footwork -- "f'{die_type}',f'-ac +{damageNull.total}',1,"","",True,"")   
-else:
-  results="-f \"Failure:\"|\"Out of charges\""
-  failure = True
-</drac2>
--title "{{ f'{character().name} uses Evasive Footwork to move through the fray' if not failure else f'{character().name} fails to use Evasive Footwork!'}}"
--desc "When you move, you can expend one superiority die, rolling the die and adding the number rolled to your AC until you stop moving."
-{{ results }}
--f "Usage:"|"```!ef -hd [die type] (optional)```"
--f "{{"Superiority ("f'{die_type}'")"}}|{{'◉'*get_cc("Superiority ("f'{die_type}'")") + '〇'*(get_cc_max("Superiority ("f'{die_type}'")")-get_cc("Superiority ("f'{die_type}'")"))}}"
-
-
-###
 #Second Wind:
 #
 #Usage: !sw
@@ -154,8 +124,90 @@ else:
 -footer "Source PHB"
 
 
+###
+#Evasive Footwork:
+#
+#Usage: !ef
+
+!alias ef embed 
+<drac2>
+args=argparse(&ARGS&)
+damage=int(args.get('d')[0]) if args.get('d') else 0
+die_type=args.get('hd')[0] if args.get('hd') else superiority_max_die
+damageNull=vroll("1"f'{die_type}')
+results=""
+if (character().get_cc("Superiority ("f'{die_type}'")") > 0):
+  failure = False
+  character().set_cc("Superiority ("f'{die_type}'")", character().get_cc("Superiority ("f'{die_type}'")") - 1 )
+  mod_ac = character().ac + damageNull.total
+  results= "-f \"Meta:\"|\"" + str(damageNull.full) + "\" -f \"Moving AC:\"|\"" + str(mod_ac) + "\" "
+  if (combat()):
+    combat().me.add_effect("Evasive Footwork -- "f'{die_type}',f'-ac +{damageNull.total}',1,"","",True,"")   
+else:
+  results="-f \"Failure:\"|\"Out of charges\""
+  failure = True
+</drac2>
+-title "{{ f'{character().name} uses Evasive Footwork to move through the fray' if not failure else f'{character().name} fails to use Evasive Footwork!'}}"
+-desc "When you move, you can expend one superiority die, rolling the die and adding the number rolled to your AC until you stop moving."
+{{ results }}
+-f "Usage:"|"```!ef -hd [die type] (optional)```"
+-f "{{"Superiority ("f'{die_type}'")"}}|{{'◉'*get_cc("Superiority ("f'{die_type}'")") + '〇'*(get_cc_max("Superiority ("f'{die_type}'")")-get_cc("Superiority ("f'{die_type}'")"))}}"
 
 
+###
+#Bait And Switch
+#
+
+!alias bas embed 
+<drac2>
+args=argparse(&ARGS&)
+target=args.get('t')[0] if args.get('t') else character().name
+die_type=args.get('hd')[0] if args.get('hd') else superiority_max_die
+damageNull=vroll("1"f'{die_type}')
+results=""
+if (character().get_cc("Superiority ("f'{die_type}'")") > 0):
+  failure = False
+  character().set_cc("Superiority ("f'{die_type}'")", character().get_cc("Superiority ("f'{die_type}'")") - 1 )
+  mod_ac = character().ac + damageNull.total
+  if (combat()):
+    mod_ac = combat().get_combatant(target).ac + damageNull.total
+	target = combat().get_combatant(target).name
+	combat().me.add_effect("Bait and Switch -- "f'{target}',"",1,False,"","",f'on {target} until start of next turn')
+	combat().get_combatant(target).add_effect("Bait and Switch -- "f'{die_type}',f'-ac +{damageNull.total}',-1,False,combat().me.get_effect("Bait and Switch -- "f'{target}'),"","")
+  results= "-f \"Meta:\"|\"" + str(damageNull.full) + "\" -f \"Target:\"|\"" + target + "\" -f \"AC:\"|\"" + str(mod_ac) + "\" "
+else:
+  results="-f \"Failure:\"|\"Out of charges\""
+  failure = True
+</drac2>
+-title "{{ f'{character().name} baits the enemy and switches places with an ally!' if not failure else f'{character().name} fails to Bait and Switch!'}}"
+-desc "When you're within 5 feet of a creature on your turn, you can expend one superiority die and switch places with that creature, provided you spend at least 5 feet of movement and the creature is willing and isn't incapacitated. This movement doesn't provoke opportunity attacks. Roll the superiority die. Until the start of your next turn, you or the other creature (your choice) gains a bonus to AC equal to the number rolled."
+{{ results }}
+-f "Usage:"|"```!ef -hd [die type] (optional)```"
+-f "{{"Superiority ("f'{die_type}'")"}}|{{'◉'*get_cc("Superiority ("f'{die_type}'")") + '〇'*(get_cc_max("Superiority ("f'{die_type}'")")-get_cc("Superiority ("f'{die_type}'")"))}}"
+
+
+
+
+###
+#Lunging Attack
+#
+
+#Use max sup die
+!snippet la {{ failure = False if (character().get_cc("Superiority ("f'{superiority_max_die}'")") > 0) else True}} {{ character().set_cc("Superiority ("f'{superiority_max_die}'")", character().get_cc("Superiority ("f'{superiority_max_die}'")") -1 ) if not failure else ' '}} {{ f'-d 1{superiority_max_die} ' if not failure else ' '}} {{f'-f "Lunging Attack Success:"|"When you make a melee weapon attack on your turn, you can expend one superiority die to increase your reach for that attack by 5 feet. If you hit, you add the superiority die to the attack\'s damage roll."' if not failure else f'-f "Lunging Attack Failure:"|"Out of Charges"' }} -f "{{"Superiority ("f'{superiority_max_die}'")"}}|{{'◉'*get_cc("Superiority ("f'{superiority_max_die}'")") + '〇'*(get_cc_max("Superiority ("f'{superiority_max_die}'")")-get_cc("Superiority ("f'{superiority_max_die}'")"))}}"
+
+#Use d6 sup die
+!snippet la6 {{ failure = False if (character().get_cc("Superiority (d6)") > 0) else True}} {{ character().set_cc("Superiority (d6)", character().get_cc("Superiority (d6)") -1 ) if not failure else ' '}} {{ f'-d 1d6 ' if not failure else ' '}} {{f'-f "Lunging Attack Success:"|"When you make a melee weapon attack on your turn, you can expend one superiority die to increase your reach for that attack by 5 feet. If you hit, you add the superiority die to the attack\'s damage roll."' if not failure else f'-f "Lunging Attack Failure:"|"Out of Charges"' }} -f "{{"Superiority (d6)"}}|{{'◉'*get_cc("Superiority (d6)") + '〇'*(get_cc_max("Superiority (d6)")-get_cc("Superiority (d6)"))}}"
+
+
+###
+#Quick Toss
+#
+
+#Use max sup die
+!snippet qt {{ failure = False if (character().get_cc("Superiority ("f'{superiority_max_die}'")") > 0) else True}} {{ character().set_cc("Superiority ("f'{superiority_max_die}'")", character().get_cc("Superiority ("f'{superiority_max_die}'")") -1 ) if not failure else ' '}} {{ f'-d 1{superiority_max_die} ' if not failure else ' '}} {{f'-f "Quick Toss Success:"|"As a bonus action, you can expend one superiority die and make a ranged attack with a weapon that has the thrown property. You can draw the weapon as part of making this attack. If you hit, add the superiority die to the weapon\'s damage roll."' if not failure else f'-f "Quick Toss Failure:"|"Out of Charges"' }} -f "{{"Superiority ("f'{superiority_max_die}'")"}}|{{'◉'*get_cc("Superiority ("f'{superiority_max_die}'")") + '〇'*(get_cc_max("Superiority ("f'{superiority_max_die}'")")-get_cc("Superiority ("f'{superiority_max_die}'")"))}}"
+
+#Use d6 sup die
+!snippet qt6 {{ failure = False if (character().get_cc("Superiority (d6)") > 0) else True}} {{ character().set_cc("Superiority (d6)", character().get_cc("Superiority (d6)") -1 ) if not failure else ' '}} {{ f'-d 1{superiority_max_die} ' if not failure else ' '}} {{f'-f "Quick Toss Success:"|"As a bonus action, you can expend one superiority die and make a ranged attack with a weapon that has the thrown property. You can draw the weapon as part of making this attack. If you hit, add the superiority die to the weapon\'s damage roll."' if not failure else f'-f "Quick Toss Failure:"|"Out of Charges"' }} -f "{{"Superiority (d6)"}}|{{'◉'*get_cc("Superiority (d6)") + '〇'*(get_cc_max("Superiority (d6)")-get_cc("Superiority (d6)"))}}"
 
 
 
