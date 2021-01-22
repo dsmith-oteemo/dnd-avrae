@@ -33,39 +33,9 @@ character().create_cc("Hit Dice (d10)",0,FighterLevel,"long","bubble")
 
 
 ###
-#Parry:
-#
-#Usage: !parry -d {the amount of damage you are parrying(required)} -hd {die type to use (optional)}
+###Fighter powers
+###
 
-!alias parry embed
-<drac2>
-args=argparse(&ARGS&)
-damage=int(args.get('d')[0]) if args.get('d') else 0
-die_type=args.get('hd')[0] if args.get('hd') else superiority_max_die
-damageNull=vroll("1"f'{die_type}'"+"f'{dexterityMod}')
-actualDamage=int(damageNull.total) if int(damageNull.total) <= damage else damage
-results=""
-if ((damage) and (character().get_cc("Superiority ("f'{die_type}'")") > 0)):
-  failure = False
-  character().set_cc("Superiority ("f'{die_type}'")", character().get_cc("Superiority ("f'{die_type}'")") - 1 )
-  results = "-f \"Meta:\"|\"" + str(damageNull.full) + "\" -f \"Damage Nullified:\"|\"" + str(actualDamage) + "\""
-  hp_mod=character().hp + actualDamage
-  hp_max=character().max_hp
-  if (hp_mod > hp_max):
-    character().reset_hp()
-  else:
-    character().set_hp(hp_mod)
-else:
-  failure = True
-  results = "-f \"Failure:\"|\"Out of charges or no Damage specified\""
-</drac2>
--title "{{ f'{character().name} uses Superiority to Parry the last attack' if not failure else f'{character().name} fails to intercept the attack'}}"
--desc "When another creature damages you with a melee attack, you can use your reaction and expend one superiority die to reduce the damage by the number you roll on your superiority die + your Dexterity modifier."
-{{ results }}
--f "Usage:"|"-d argument is required```!parry -d [damage of last attack] -hd [die type to use (optional)]```"
--f "{{ character().name }} HP:"|"{{ character().hp_str() }}"
--f "{{"Superiority ("f'{die_type}'")"}}|{{'◉'*get_cc("Superiority ("f'{die_type}'")") + '〇'*(get_cc_max("Superiority ("f'{die_type}'")")-get_cc("Superiority ("f'{die_type}'")"))}}"
--footer "Source PHB"
 
 
 ###
@@ -124,6 +94,48 @@ else:
 -footer "Source PHB"
 
 
+
+###
+###Maneuvers:
+###
+
+
+###
+#Parry:
+#
+#Usage: !parry -d {the amount of damage you are parrying(required)} -hd {die type to use (optional)}
+
+!alias parry embed
+<drac2>
+args=argparse(&ARGS&)
+damage=int(args.get('d')[0]) if args.get('d') else 0
+die_type=args.get('hd')[0] if args.get('hd') else superiority_max_die
+damageNull=vroll("1"f'{die_type}'"+"f'{dexterityMod}')
+actualDamage=int(damageNull.total) if int(damageNull.total) <= damage else damage
+results=""
+if ((damage) and (character().get_cc("Superiority ("f'{die_type}'")") > 0)):
+  failure = False
+  character().set_cc("Superiority ("f'{die_type}'")", character().get_cc("Superiority ("f'{die_type}'")") - 1 )
+  results = "-f \"Meta:\"|\"" + str(damageNull.full) + "\" -f \"Damage Nullified:\"|\"" + str(actualDamage) + "\""
+  hp_mod=character().hp + actualDamage
+  hp_max=character().max_hp
+  if (hp_mod > hp_max):
+    character().reset_hp()
+  else:
+    character().set_hp(hp_mod)
+else:
+  failure = True
+  results = "-f \"Failure:\"|\"Out of charges or no Damage specified\""
+</drac2>
+-title "{{ f'{character().name} uses Superiority to Parry the last attack' if not failure else f'{character().name} fails to intercept the attack'}}"
+-desc "When another creature damages you with a melee attack, you can use your reaction and expend one superiority die to reduce the damage by the number you roll on your superiority die + your Dexterity modifier."
+{{ results }}
+-f "Usage:"|"-d argument is required```!parry -d [damage of last attack] -hd [die type to use (optional)]```"
+-f "{{ character().name }} HP:"|"{{ character().hp_str() }}"
+-f "{{"Superiority ("f'{die_type}'")"}}|{{'◉'*get_cc("Superiority ("f'{die_type}'")") + '〇'*(get_cc_max("Superiority ("f'{die_type}'")")-get_cc("Superiority ("f'{die_type}'")"))}}"
+-footer "Source PHB"
+
+
 ###
 #Evasive Footwork:
 #
@@ -152,10 +164,6 @@ else:
 {{ results }}
 -f "Usage:"|"```!ef -hd [die type] (optional)```"
 -f "{{"Superiority ("f'{die_type}'")"}}|{{'◉'*get_cc("Superiority ("f'{die_type}'")") + '〇'*(get_cc_max("Superiority ("f'{die_type}'")")-get_cc("Superiority ("f'{die_type}'")"))}}"
-
-###
-###Maneuvers:
-###
 
 
 ###
