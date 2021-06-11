@@ -4,9 +4,9 @@
 !test <drac2>
 if (ClericLevel < 2):
   character.remove_cc("Channel Divinity")
-elif (ClericLevel < 7):
+elif (ClericLevel < 6):
   character().create_cc("Channel Divinity",0,1,"short","bubble")
-elif (ClericLevel < 19):
+elif (ClericLevel < 18):
   character().create_cc("Channel Divinity",0,2,"short","bubble")
 else:
   character().create_cc("Channel Divinity",0,3,"short","bubble")
@@ -105,3 +105,8 @@ else:
 -desc "You can expend a use of your Channel Divinity to fuel your spells. As a bonus action, you touch your holy symbol, utter a prayer, and regain one expended spell slot, the level of which can be no higher than half your proficiency bonus (rounded up). The number of times you can use this feature is based on the level you've reached in this class: 2nd level, once; 6th level, twice; and 18th level, thrice. You regain all expended uses when you finish a long rest."
 -f "Level {slot_level} Spell Slots:"|{{'◉' * (character().spellbook.get_slots(int(slot_level))) + '〇' * (character().spellbook.get_max_slots(int(slot_level)) - character().spellbook.get_slots(int(slot_level)))}}
 -f "Channel Divinity"|{{'◉' * get_cc('Channel Divinity') + '〇' * (get_cc_max('Channel Divinity') - get_cc('Channel Divinity'))}}
+
+!alias dampen embed
+-title "{{ f'{character().name} Dampens the effects of an elemntal attack' }}"
+-desc "Starting at 6th level, when you or a creature within 30 feet of you takes acid, cold, fire, lightning, or thunder damage, you can use your reaction to grant resistance to the creature against that instance of the damage."
+-footer "PHB 61"

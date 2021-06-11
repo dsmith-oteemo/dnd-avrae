@@ -63,5 +63,4 @@ if ((combat()) and (combat().get_combatant("Flapjack"))):
 #Flapjack attack shortcut
 !alias fa ma flapjack bite
 
-
-
+#snippet fe -d 4

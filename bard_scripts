@@ -32,6 +32,13 @@ if not character().cc_exists("Fury of the Small"):
   character().create_cc("Fury of the Small",0,1,"short","bubble")
 </drac2>
 
+###Establish Hit dice
+!test <drac2>
+if character().cc_exists("Hit Dice (d8)"):
+  character().delete_cc("Hit Dice (d8)")
+character().create_cc("Hit Dice (d8)",0,BardLevel,"long","bubble")
+</drac2>
+
 
 ###Use fury of the small -- COMBAT ONLY
 ###Usage: !i a "Light Crossbow" -t "Monster" fury
@@ -106,6 +113,26 @@ else:
 {{ results }}
 -f "{{"Bardic Inspiration"}}|{{'◉'*get_cc("Bardic Inspiration") + '〇'*(get_cc_max("Bardic Inspiration")-get_cc("Bardic Inspiration"))}}"
 -footer "Source XGE"
+
+
+!alias majesty embed
+<drac2>
+failure = False
+if (character().get_cc("Bardic Inspiration") > 0 ):
+  character().set_cc("Bardic Inspiration", character().get_cc("Bardic Inspiration") - 1)
+  if (combat()):
+    combat().me.add_effect("Mantle of Majesty","",10,True,"","","Cast command as a bonus action witout expending spell slot")
+else:
+  failure = True
+</drac2>
+-title "{{f'{character().name} {"casts Mantle of Majesty" if not failure else "fails to cast Mantle of Majesty"}!' }}"
+-desc "At 6th level, you gain the ability to cloak yourself in a fey magic that makes others want to serve you. As a bonus action, you cast command, without expending a spell slot, and you take on an appearance of unearthly beauty for 1 minute or until your concentration ends (as if you were concentrating on a spell). During this time, you can cast command as a bonus action on each of your turns, without expending a spell slot. Any creature charmed by you automatically fails its saving throw against the command you cast with this feature. Once you use this feature, you can't use it again until you finish a long rest."
+-f "{{"Bardic Inspiration"}}|{{'◉'*get_cc("Bardic Inspiration") + '〇'*(get_cc_max("Bardic Inspiration")-get_cc("Bardic Inspiration"))}}"
+-footer "Source PHB"
+
+
+## alias for command freebee
+!alias cmd cast command -i
 
 
 ###Enthralling performance -- no targeting since this one will be used outside combat.
