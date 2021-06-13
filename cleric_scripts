@@ -107,6 +107,6 @@ else:
 -f "Channel Divinity"|{{'◉' * get_cc('Channel Divinity') + '〇' * (get_cc_max('Channel Divinity') - get_cc('Channel Divinity'))}}
 
 !alias dampen embed
--title "{{ f'{character().name} Dampens the effects of an elemntal attack' }}"
+-title "{{ f'{character().name} Dampens the effects of an elemental attack' }}"
 -desc "Starting at 6th level, when you or a creature within 30 feet of you takes acid, cold, fire, lightning, or thunder damage, you can use your reaction to grant resistance to the creature against that instance of the damage."
 -footer "PHB 61"
