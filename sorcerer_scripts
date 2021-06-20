@@ -13,7 +13,7 @@ character().set_cvar("sorcerer_draconic_ancestry","fire")
 if character().cc_exists("Breath Weapon"):
   character().delete_cc("Breath Weapon")
 character().create_cc("Breath Weapon",0,1,"short","bubble")
-character().set_cvar("dragonborn_ancestry","acid")
+character().set_cvar("dragonborn_ancestry","fire")
 character().set_cvar("dragonborn_ancestry_save","dexterity")
 </drac2>
 
