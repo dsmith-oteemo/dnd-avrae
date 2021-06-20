@@ -1,0 +1,133 @@
+#Level script and counter setup for sorc
+
+!test <drac2>
+if character().cc_exists("Sorcery Points"):
+  character().delete_cc("Sorcery Points")
+character().create_cc("Sorcery Points",0,(SorcererLevel - 1),"long","bubble")
+character().set_cvar("sorcerer_draconic_ancestry","fire")
+</drac2>
+
+#Level script and counter setup for dragonborn
+
+!test <drac2>
+if character().cc_exists("Breath Weapon"):
+  character().delete_cc("Breath Weapon")
+character().create_cc("Breath Weapon",0,1,"short","bubble")
+character().set_cvar("dragonborn_ancestry","acid")
+character().set_cvar("dragonborn_ancestry_save","dexterity")
+</drac2>
+
+#Dragonborn breath Weapon
+
+!alias breath embed
+<drac2>
+args = argparse(&ARGS&)
+targets = args.get('t')
+spellDC = 8 + constitutionMod + proficiencyBonus
+results = "-f 'Targets:'|\u200b\n"
+failure = False
+if level < 6:
+  rollstring = "2d6["f'{dragonborn_ancestry}'"]"
+elif level < 11:
+  rollstring = "3d6["f'{dragonborn_ancestry}'"]"
+else:
+  rollstring = "4d6["f'{dragonborn_ancestry}'"]"
+if character().get_cc("Breath Weapon") > 0 and combat():
+  character().set_cc("Breath Weapon",(character().get_cc("Breath Weapon") - 1 ) )
+  for target in targets:
+    enemysave = combat().get_combatant(target).save(dragonborn_ancestry_save,"")
+    result = vroll(f'{rollstring}') if enemysave.total < spellDC else vroll(f'{rollstring}'"/2")
+    combat().get_combatant(target).damage(result.total)
+    results = results + "-f '" + str(combat().get_combatant(target).name) + ": " + str(combat().get_combatant(target).hp_str()) + "\nSave Roll: " + enemysave.full + (" -- Failure!" if enemysave.total < spellDC else " -- Success!") + "\nDamage Roll: " + result.full + "'\n" 
+else:
+  failure = True
+</drac2>
+-title "{{ f'{character().name} uses {dragonborn_ancestry} breath' if not failure else f'{character().name} tries to use {dragonborn_ancestry} breath, but just burps!' }}"
+-desc "You can use your action to exhale destructive energy. Your draconic ancestry determines the size, shape, and damage type of the exhalation. When you use your breath weapon, each creature in the area of the exhalation must make a saving throw, the type of which is determined by your draconic ancestry. A creature takes {{rollstring}} damage on a failed save, and half as much damage on a successful one. After you use your breath weapon, you can't use it again until you complete a short or long rest."
+-f "Save DC"|"{{spellDC}}"
+{{results}}
+-f "Usage"|"!breath -t [Target1] -t [Target2] -t [TargetN]" 
+-f "Breath Weapon"|"{{ character().cc_str("Breath Weapon") }}"
+
+
+#Flexible Casting
+
+!alias flex embed
+<drac2>
+args=argparse(&ARGS&)
+slot_level=int(args.get('l')[0] if args.get('l') else 1)
+type="destroy" if args.get('d') else "create"
+failure = False
+if slot_level < 5:
+  points = ceil(slot_level * 1.5)
+else:
+  points = 7
+if character().spellbook.get_max_slots(slot_level) == 0:
+  failure = True
+if type == "create" and character().spellbook.get_slots(slot_level) < character().spellbook.get_max_slots(slot_level) and character().get_cc("Sorcery Points") >= points and not failure:
+  character().set_cc("Sorcery Points",(character().get_cc("Sorcery Points") - points ) )
+  character().spellbook.set_slots(slot_level, character().spellbook.get_slots(slot_level) + 1)
+elif type == "destroy" and character().spellbook.get_slots(slot_level) > 0 and not failure:
+  character().spellbook.set_slots(slot_level, character().spellbook.get_slots(slot_level) - 1)
+  if character().get_cc("Sorcery Points") + slot_level < character().get_cc_max("Sorcery Points"):
+    character().set_cc("Sorcery Points",(character().get_cc("Sorcery Points") + slot_level ) )
+  else:
+    character().set_cc("Sorcery Points",character().get_cc_max("Sorcery Points") )
+else:
+  failure = True
+</drac2>
+-title "{{ f'{character().name} uses Flexible casting' if not failure else f'{character().name} fails to use Flexible casting!' }}"
+-desc "You can use your sorcery points to gain additional spell slots, or sacrifice spell slots to gain additional sorcery points. You learn other ways to use your sorcery points as you reach higher levels."
+-f "Usage"|"!flex -l [spell slot level]" 
+-f "[optional argument] -d to destroy spell slot for sorcery points, default is to create spell slot with sorcery points"
+-f "Sorcery Points"|"{{ character().cc_str("Sorcery Points") }}"
+-f "level {{slot_level}} spell slots"|"{{ character().spellbook.slots_str(slot_level) }}"
+
+#Twinned Spell
+
+!alias ts embed
+<drac2>
+args=argparse(&ARGS&)
+slot_level=int(args.get('l')[0] if args.get('l') else 1)
+failure = False
+if character().get_cc("Sorcery Points") >= slot_level:
+  character().set_cc("Sorcery Points",(character().get_cc("Sorcery Points") - slot_level ) )
+else:
+  failure = True
+</drac2>
+-title "{{ f'{character().name} uses Twinned Spell' if not failure else f'{character().name} fails to use Twinned Spell!' }}"
+-desc "When you cast a spell that targets only one creature and doesn't have a range of self, you can spend a number of sorcery points equal to the spell's level to target a second creature in range with the same spell (1 sorcery point if the spell is a cantrip). To be eligible, a spell must be incapable of targeting more than one creature at the spell's current level. For example, magic missile and scorching ray aren't eligible, but ray of frost and chromatic orb are."
+-f "Usage"|"!ts -l [spell slot level]" 
+-f "Use this before casting to deduct sorcery points, then when casting use -t to specify an extra target (e.g. !cast fireball -t TA1 -t TA2)"
+-f "Sorcery Points"|"{{ character().cc_str("Sorcery Points") }}"
+
+#Quickened spell
+
+!snippet qs {{ points = 0 if character().get_cc("Sorcery Points") < 2 else 2 }} {{ character().set_cc("Sorcery Points",character().get_cc("Sorcery Points") - points ) }} {{ f'-f "Quickened Spell:"|"When you cast a spell that has a casting time of 1 action, you can spend 2 sorcery points to change the casting time to 1 bonus action for this casting."' if points == 2 else f'-f "Quickened Spell Failure!"|"When you cast a spell that has a casting time of 1 action, you can spend 2 sorcery points to change the casting time to 1 bonus action for this casting."' }} -f "Sorcery Points"|"{{ character().cc_str("Sorcery Points") }}"
+
+#Magical Guidance
+
+!alias mg embed
+<drac2>
+failure = False
+if character().get_cc("Sorcery Points") >= 1:
+  character().set_cc("Sorcery Points",(character().get_cc("Sorcery Points") - 1 ) )
+else:
+  failure = True
+</drac2>
+-title "{{ f'{character().name} uses magical Guidance' if not failure else f'{character().name} fails to use Magical Guidance!' }}"
+-desc "You can tap into your inner wellspring of magic to try to conjure success from failure. When you make an ability check that fails, you can spend 1 sorcery point to reroll the d20, and you must use the new roll, potentially turning the failure into a success."
+-f "Usage"|"!mg" 
+-f "Reroll Value"|"{ 1d20 }"
+-f "Sorcery Points"|"{{ character().cc_str("Sorcery Points") }}"
+
+#Elemental Affinity without resistance (does not use a sorcery point)
+
+!snippet ea -d {charismaMod} -f "Elemental Affinity"|"Starting at 6th level, when you cast a spell that deals damage of the type associated with your draconic ancestry, you can add your Charisma modifier to one damage roll of that spell."
+
+#Elemental Affinity with resistance (uses a sorcery point)
+
+!snippet ear -d {charismaMod} {{ failure = True if character().get_cc("Sorcery Points") < 1 else False }} {{ dummyVar = combat().me.add_effect("Elemental Affinity "f'{sorcerer_draconic_ancestry}',"-resist {sorcerer_draconic_ancestry}",600,"","","",f'{sorcerer_draconic_ancestry}'" resistance for one hour") if combat() and not failure else "" }} {{ character().set_cc("Sorcery Points",character().get_cc("Sorcery Points") - 1 ) }} {{ f'-f "Elemental Affinity"|"Starting at 6th level, when you cast a spell that deals damage of the type associated with your draconic ancestry, you can add your Charisma modifier to one damage roll of that spell. At the same time, you can spend 1 sorcery point to gain resistance to that damage type for 1 hour."' if not failure else f'-f "Elemental Affinity Failure!"|"Starting at 6th level, when you cast a spell that deals damage of the type associated with your draconic ancestry, you can add your Charisma modifier to one damage roll of that spell. At the same time, you can spend 1 sorcery point to gain resistance to that damage type for 1 hour."' }} -f "Sorcery Points"|"{{ character().cc_str("Sorcery Points") }}"
+
+
+

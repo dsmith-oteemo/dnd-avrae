@@ -1,0 +1,40 @@
+#Rogue level script
+
+!test <drac2>
+
+</drac2>
+
+#Sneak Attack
+
+!snippet sa -d "{{ ceil(RogueLevel / 2) }}d6"
+
+#Cunning Action
+
+!alias ca embed
+-title "{{character().name}} uses Cunning Action"
+-desc "Starting at 2nd level, your quick thinking and agility allow you to move and act quickly. You can take a bonus action on each of your turns in combat. This action can be used only to take the Dash, Disengage, or Hide action."
+
+#Rakish Audacity
+
+!snippet rak -b {{ charismaMod }}
+
+#Steady Aim
+
+!alias steady embed
+-title "{{character().name}} uses Steady Aim"
+-desc "As a bonus action, you give yourself advantage on your next attack roll on the current turn. You can use this bonus action only if you haven't moved during this turn, and after you use the bonus action, your speed is 0 until the end of the current turn."
+
+#Uncanny Dodge
+
+!alias ud embed
+<drac2>
+args=argparse(&ARGS&)
+heal_amt = ceil(int("%1%")/2)
+character().modify_hp(heal_amt)
+</drac2>
+-title "{{character().name}} uses Uncanny Dodge"
+-desc "Starting at 5th level, when an attacker that you can see hits you with an attack, you can use your reaction to halve the attack's damage against you."
+-f "Damage nullified"|"{{heal_amt}}"
+-f "{{character().name}}"|"{{character().hp_str()}}"
+-f "Usage (Use after damage is dealt against you):"|"!ud [damage taken]"
+
