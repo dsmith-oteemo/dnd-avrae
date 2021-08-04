@@ -13,9 +13,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: tgymnich/fork-sync@v1.4
+      - uses: dsmith-oteemo/fork-sync@v1.4
         with:
           owner: ahkarhul
           base: main
           head: main
           ignore_fail: true
+          auto_approve: ''
