@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: tgymnich/fork-sync
+      - uses: tgymnich/fork-sync@v1.4
         with:
           owner: ahkarhul
           base: main
