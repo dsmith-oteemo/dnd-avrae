@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: dsmith-oteemo/fork-sync@stop-merging
+      - uses: dsmith-oteemo/fork-sync@dave
         with:
           owner: ahkarhul
           base: main
