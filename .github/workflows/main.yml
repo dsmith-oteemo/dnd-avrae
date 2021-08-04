@@ -1,0 +1,20 @@
+# This is a basic workflow to help you get started with Actions
+
+name: fork-sync test
+
+on:
+  schedule:
+    - cron: '*/30 * * * *' # every 30 minutes
+  workflow_dispatch: # on button click
+
+jobs:
+  sync:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: tgymnich/fork-sync@v1.4
+        with:
+          owner: ahkarhul
+          base: master
+          head: master
