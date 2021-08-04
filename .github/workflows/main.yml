@@ -18,3 +18,4 @@ jobs:
           owner: ahkarhul
           base: main
           head: main
+          auto_approve: false
