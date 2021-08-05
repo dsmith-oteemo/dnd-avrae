@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: dsmith-oteemo/fork-sync@dave1
+      - uses: tgymnich/fork-sync@v1.5
         with:
           owner: ahkarhul
           base: main
